@@ -1,0 +1,39 @@
+name: Sync Upstream Tags and Branches
+
+on:
+  schedule:
+    # 每天 UTC 时间 0 点运行一次（北京时间早上 8 点）
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # 允许在网页上手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 拉取完整历史，tag 同步需要
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync tags and branches from upstream
+        run: |
+          # 改成你要同步的上游仓库地址
+          UPSTREAM_URL="https://github.com/QuantumNous/new-api.git"
+          
+          git remote add upstream "$UPSTREAM_URL"
+          git fetch upstream --tags --force
+          
+          # 推送所有 tags 到自己的 fork
+          git push origin --tags --force
+          
+          echo "Tags 同步完成"
+
+      - name: Sync main branch (可选)
+        run: |
+          # 如果还想同步主分支的更新，取消下面的注释
+          # 把 main 改成你仓库的默认分支名（可能是 master）
+          # git checkout main
+          # git merge upstream/main --ff-only
+          # git push origin main
+          echo "分支同步已跳过（如需启用请编辑 workflow）"
